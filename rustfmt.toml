@@ -1,0 +1,8 @@
+max_width = 100
+fn_single_line = true
+reorder_imports = true
+group_imports = "StdExternalCrate"
+chain_width = 40
+match_block_trailing_comma = true
+format_strings = true
+wrap_comments = true
