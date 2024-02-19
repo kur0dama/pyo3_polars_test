@@ -1,11 +1,24 @@
 ### Installation
 
-After cloning repo:
+To install unoptimized build:
 ```
-python -m venv .venv
-maturin develop
-source .venv/bin/activate
-python
+$ git clone https://github.com/kur0dama/pyo3_polars_test.git
+$ cd pyo3_polars_test
+$ python -m venv .venv
+$ maturin develop
+$ source .venv/bin/activate
+$ python
+```
+
+To install optimized build:
+```
+$ git clone https://github.com/kur0dama/pyo3_polars_test.git
+$ cd pyo3_polars_test
+$ python -m venv .venv
+$ maturin build
+$ source .venv/bin/activate
+$ pip install .
+$ python
 ```
 
 ### Usage

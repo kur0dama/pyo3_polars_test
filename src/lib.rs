@@ -4,7 +4,7 @@ use polars::datatypes::DataType as PolarsDataType;
 use polars::df;
 use polars::prelude::*;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types as pytypes;
 
 fn make_dummy_dataframe() -> DataFrame {
     let dframe = df![
@@ -12,6 +12,29 @@ fn make_dummy_dataframe() -> DataFrame {
         "number" => [1i8,2i8,3i8],
     ];
     dframe.unwrap()
+}
+
+fn df_to_pydict(py: Python, dframe: DataFrame) -> &pytypes::PyDict {
+    let dict: &pytypes::PyDict = pytypes::PyDict::new(py);
+    for col in dframe.get_columns() {
+        let v = match col.dtype() {
+            PolarsDataType::Int8 => col
+                .i8()
+                .expect("Could not render column as Vec<i8>")
+                .into_iter()
+                .map(|x| x.to_object(py))
+                .collect(),
+            PolarsDataType::String => col
+                .str()
+                .expect("Could not render column as Vec<&str>")
+                .into_iter()
+                .map(|x| x.to_object(py))
+                .collect(),
+            _ => vec![],
+        };
+        let _ = dict.set_item(col.name(), v);
+    }
+    dict
 }
 
 #[pyfunction]
@@ -25,25 +48,7 @@ fn get_data_1() -> HashMap<String, Vec<i32>> {
 #[pyfunction]
 fn get_data_2(py: Python) -> PyResult<PyObject> {
     let dframe = make_dummy_dataframe();
-    let dict: &PyDict = PyDict::new(py);
-    for col in dframe.get_columns() {
-        let v = match col.dtype() {
-            PolarsDataType::Int8 => col
-                .i8()
-                .unwrap()
-                .into_iter()
-                .map(|x| x.unwrap().to_object(py))
-                .collect::<Vec<PyObject>>(),
-            PolarsDataType::String => col
-                .str()
-                .unwrap()
-                .into_iter()
-                .map(|x| x.unwrap().to_object(py))
-                .collect::<Vec<PyObject>>(),
-            _ => vec![],
-        };
-        let _ = dict.set_item(col.name(), v);
-    }
+    let dict = df_to_pydict(py, dframe);
     Ok(dict.into())
 }
 
